@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AeroCalc — Hız Dönüştürücü</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --panel: #0d1318;
+    --panel2: #111820;
+    --border: #1e3a4a;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --amber: #ffb300;
+    --text: #c8e8f0;
+    --dim: #4a7080;
+    --glow: 0 0 12px rgba(0,212,255,0.4);
+    --glow-green: 0 0 12px rgba(57,255,20,0.4);
+    --glow-amber: 0 0 12px rgba(255,179,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .logo-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    position: relative;
+  }
+
+  .logo-icon svg {
+    filter: drop-shadow(0 0 8px var(--accent));
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, var(--accent) 0%, #ffffff 50%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    animation: shimmer 4s ease-in-out infinite;
+    background-size: 200% auto;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { background-position: 0% center; }
+    50% { background-position: 200% center; }
+  }
+
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--dim);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .tagline {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    opacity: 0.7;
+  }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-bottom: 2px solid var(--accent);
+    padding: 8px 20px;
+    margin-bottom: 30px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--dim);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: var(--glow-green);
+    animation: pulse 2s ease-in-out infinite;
+    display: inline-block;
+    margin-right: 8px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* MAIN GRID */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 680px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* PANEL */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .panel-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,212,255,0.03);
+  }
+
+  .panel-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--accent);
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .panel-body {
+    padding: 20px;
+  }
+
+  /* INPUT GROUPS */
+  .input-group {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  input[type="number"] {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1rem;
+    padding: 12px 16px;
+    outline: none;
+    transition: all 0.2s;
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+
+  input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 20px rgba(0,212,255,0.05), var(--glow);
+    background: rgba(0,212,255,0.03);
+  }
+
+  .unit-toggle {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .unit-btn {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+    padding: 0 12px;
+    cursor: pointer;
+    flex: 1;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .unit-btn.active {
+    background: rgba(0,212,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  .unit-btn:hover:not(.active) {
+    border-color: var(--dim);
+    color: var(--text);
+  }
+
+  /* Speed type selector */
+  .speed-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .speed-type-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    padding: 10px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .speed-type-btn span.abbr {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .speed-type-btn.active {
+    background: rgba(0,212,255,0.08);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  .speed-type-btn.active.cas { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
+  .speed-type-btn.active.tas { border-color: var(--accent3); color: var(--accent3); background: rgba(57,255,20,0.06); box-shadow: var(--glow-green); }
+  .speed-type-btn.active.eas { border-color: var(--amber); color: var(--amber); background: rgba(255,179,0,0.06); box-shadow: var(--glow-amber); }
+  .speed-type-btn.active.mach { border-color: var(--accent2); color: var(--accent2); background: rgba(255,107,53,0.06); box-shadow: 0 0 12px rgba(255,107,53,0.3); }
+
+  /* CALCULATE BUTTON */
+  .calc-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .calc-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(0,212,255,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .calc-btn:hover::before { transform: translateX(100%); }
+  .calc-btn:hover {
+    background: rgba(0,212,255,0.08);
+    box-shadow: var(--glow), inset var(--glow);
+    letter-spacing: 0.4em;
+  }
+
+  .calc-btn:active { transform: scale(0.99); }
+
+  /* RESULTS PANEL */
+  .results-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent), var(--accent2));
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  @media (max-width: 680px) {
+    .results-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .result-card {
+    padding: 24px 20px;
+    border-right: 1px solid var(--border);
+    position: relative;
+    transition: background 0.2s;
+  }
+
+  .result-card:last-child { border-right: none; }
+  .result-card:nth-child(2) { border-right: 1px solid var(--border); }
+
+  @media (max-width: 680px) {
+    .result-card:nth-child(2n) { border-right: none; }
+    .result-card:nth-child(1), .result-card:nth-child(2) {
+      border-bottom: 1px solid var(--border);
+    }
+    .result-card:nth-child(3), .result-card:nth-child(4) {
+      border-bottom: 0;
+    }
+  }
+
+  .result-card.highlighted {
+    background: rgba(0,212,255,0.04);
+  }
+
+  .result-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.5rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .result-abbr {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .result-abbr.cas { color: var(--accent); text-shadow: var(--glow); }
+  .result-abbr.tas { color: var(--accent3); text-shadow: var(--glow-green); }
+  .result-abbr.eas { color: var(--amber); text-shadow: var(--glow-amber); }
+  .result-abbr.mach { color: var(--accent2); text-shadow: 0 0 12px rgba(255,107,53,0.4); }
+
+  .result-value {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1;
+    min-height: 2.2rem;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    transition: all 0.3s;
+  }
+
+  .result-unit {
+    font-size: 0.7rem;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+  }
+
+  .result-value.updating {
+    animation: valueFlash 0.4s ease;
+  }
+
+  @keyframes valueFlash {
+    0% { opacity: 0.3; transform: translateY(4px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Secondary values */
+  .result-secondary {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(30,58,74,0.5);
+  }
+
+  .sec-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--dim);
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
+  .sec-val span:last-child { color: rgba(200,232,240,0.5); }
+
+  /* ATMOSPHERE INFO */
+  .atmo-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .atmo-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+  }
+
+  .atmo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+    padding: 0;
+  }
+
+  @media (max-width: 700px) {
+    .atmo-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .atmo-item {
+    padding: 16px 16px;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .atmo-item:last-child { border-right: none; }
+
+  .atmo-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .atmo-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    color: var(--amber);
+    text-shadow: var(--glow-amber);
+    transition: all 0.3s;
+  }
+
+  .atmo-value.updating {
+    animation: valueFlash 0.4s ease;
+  }
+
+  /* FORMULA NOTE */
+  .formula-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--dim);
+    line-height: 1.8;
+  }
+
+  .formula-card strong {
+    color: var(--accent);
+    font-weight: normal;
+  }
+
+  /* MACH indicator */
+  .mach-zone {
+    display: inline-block;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.5rem;
+    padding: 2px 6px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    margin-top: 6px;
+  }
+
+  .zone-subsonic { background: rgba(57,255,20,0.1); color: var(--accent3); border: 1px solid rgba(57,255,20,0.3); }
+  .zone-transonic { background: rgba(255,179,0,0.1); color: var(--amber); border: 1px solid rgba(255,179,0,0.3); }
+  .zone-supersonic { background: rgba(255,107,53,0.1); color: var(--accent2); border: 1px solid rgba(255,107,53,0.3); }
+  .zone-hypersonic { background: rgba(255,50,50,0.1); color: #ff5555; border: 1px solid rgba(255,50,50,0.3); }
+
+  /* Error message */
+  .error-msg {
+    background: rgba(255,50,50,0.08);
+    border: 1px solid rgba(255,50,50,0.3);
+    color: #ff6666;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 10px 16px;
+    margin-top: 8px;
+    display: none;
+    letter-spacing: 0.1em;
+  }
+
+  .error-msg.visible { display: block; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+  }
+
+  .empty-state .big-icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+
+  /* Corner decorations */
+  .corner-deco {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: var(--accent);
+    border-style: solid;
+    opacity: 0.5;
+  }
+
+  .corner-deco.tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+  .corner-deco.tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+  .corner-deco.bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+  .corner-deco.br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+  /* Ticker */
+  .ticker {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--dim);
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .ticker-dot {
+    width: 4px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  /* Tooltip */
+  .info-btn {
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--dim);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--dim);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.5rem;
+    cursor: help;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+  }
+
+  footer {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--dim);
+    letter-spacing: 0.15em;
+  }
+
+  /* Altitude profile visual */
+  .alt-visual {
+    height: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    margin-top: 12px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .alt-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--glow);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-line">
+      <div class="logo-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <path d="M8 28 L24 8 L40 28 L32 26 L32 40 L16 40 L16 26 Z" stroke="#00d4ff" stroke-width="1.5" fill="none"/>
+          <circle cx="24" cy="24" r="4" fill="#00d4ff" opacity="0.6"/>
+          <path d="M4 32 L12 28 M44 32 L36 28" stroke="#00d4ff" stroke-width="1" opacity="0.5"/>
+        </svg>
+      </div>
+      <h1>AEROCALC</h1>
+    </div>
+    <div class="subtitle">Havacılık Hız Dönüştürücü Sistemi</div>
+    <div class="tagline">ISA Standart Atmosfer · ICAO Formülleri</div>
+  </header>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div><span class="status-dot"></span>SİSTEM HAZIR</div>
+    <div class="ticker"><span class="ticker-dot"></span>ISA ATMOSPHERIC MODEL ACTIVE</div>
+    <div id="currentTime">---</div>
+  </div>
+
+  <!-- MAIN INPUT GRID -->
+  <div class="main-grid">
+    <!-- INPUT PANEL -->
+    <div class="panel">
+      <div class="corner-deco tl"></div>
+      <div class="corner-deco tr"></div>
+      <div class="corner-deco bl"></div>
+      <div class="corner-deco br"></div>
+      <div class="panel-header">
+        <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 14a6 6 0 110-12 6 6 0 010 12zm.75-9.25a.75.75 0 10-1.5 0v3.5l2.25 2.25a.75.75 0 001.06-1.06L10.75 9.19V6.75z"/>
+        </svg>
+        <span class="panel-title">GİRİŞ PARAMETRELERİ</span>
+      </div>
+      <div class="panel-body">
+        <!-- Speed type selector -->
+        <div style="margin-bottom:14px;">
+          <label>GİRİŞ HIZ TÜRÜ</label>
+          <div class="speed-type-grid">
+            <button class="speed-type-btn cas active" onclick="setSpeedType('CAS')">
+              <span class="abbr">CAS</span>Calibrated Airspeed
+            </button>
+            <button class="speed-type-btn tas" onclick="setSpeedType('TAS')">
+              <span class="abbr">TAS</span>True Airspeed
+            </button>
+            <button class="speed-type-btn eas" onclick="setSpeedType('EAS')">
+              <span class="abbr">EAS</span>Equivalent Airspeed
+            </button>
+            <button class="speed-type-btn mach" onclick="setSpeedType('MACH')">
+              <span class="abbr">MACH</span>Mach Number
+            </button>
+          </div>
+        </div>
+
+        <!-- Speed input -->
+        <div class="input-group" id="speedGroup">
+          <label id="speedLabel">GİRİŞ HIZ DEĞERİ</label>
+          <div class="input-row">
+            <input type="number" id="speedInput" placeholder="0.00" step="0.1" min="0">
+            <div class="unit-toggle">
+              <button class="unit-btn active" id="ktsBtn" onclick="setSpeedUnit('KTS')">KTS</button>
+              <button class="unit-btn" id="kmhBtn" onclick="setSpeedUnit('KMH')">KM/H</button>
+            </div>
+          </div>
+          <div id="speedError" class="error-msg">⚠ Geçerli bir hız değeri girin</div>
+        </div>
+
+        <!-- Altitude input -->
+        <div class="input-group">
+          <label>İRTİFA</label>
+          <div class="input-row">
+            <input type="number" id="altInput" placeholder="0" step="100" min="-2000" max="80000">
+            <div class="unit-toggle">
+              <button class="unit-btn active" id="ftBtn" onclick="setAltUnit('FT')">FT</button>
+              <button class="unit-btn" id="mBtn" onclick="setAltUnit('M')">M</button>
+            </div>
+          </div>
+          <div id="altError" class="error-msg">⚠ İrtifa -2000ft ile 80000ft arasında olmalıdır</div>
+          <!-- Altitude visual bar -->
+          <div class="alt-visual"><div class="alt-fill" id="altFill" style="width:0%"></div></div>
+        </div>
+
+        <button class="calc-btn" onclick="calculate()">▶ HESAPLA</button>
+      </div>
+    </div>
+
+    <!-- INFO PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/>
+        </svg>
+        <span class="panel-title">HIZ TÜRLERİ HAKKINDA</span>
+      </div>
+      <div class="panel-body">
+        <div class="formula-card">
+          <strong>CAS</strong> — Calibrated Airspeed<br>
+          Pitot tüpünden ölçülen ve enstrüman hatası düzeltilmiş hız. Düşük irtifa ve hızda IAS ≈ CAS ≈ EAS.
+        </div>
+        <div class="formula-card" style="border-left-color: var(--accent3);">
+          <strong>TAS</strong> — True Airspeed<br>
+          Hava kütlesine göre gerçek hız. İrtifa arttıkça hava yoğunluğu azalır, TAS > CAS olur.
+        </div>
+        <div class="formula-card" style="border-left-color: var(--amber);">
+          <strong>EAS</strong> — Equivalent Airspeed<br>
+          Aynı dinamik basıncı deniz seviyesinde üreten hız. EAS = TAS × √(ρ/ρ₀)
+        </div>
+        <div class="formula-card" style="border-left-color: var(--accent2);">
+          <strong>MACH</strong> — Mach Sayısı<br>
+          TAS'ın ses hızına oranı. M &lt; 0.8 subsonic, 0.8–1.2 transonic, &gt; 1.2 supersonic.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATMOSPHERE DATA -->
+  <div class="atmo-panel">
+    <div class="panel-header">
+      <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor" style="color:var(--amber)">
+        <path d="M5.5 16.5a1 1 0 11-2 0 1 1 0 012 0zm0-14a1 1 0 11-2 0 1 1 0 012 0zM16.5 16.5a1 1 0 11-2 0 1 1 0 012 0zm0-14a1 1 0 11-2 0 1 1 0 012 0zM11 3.5a.5.5 0 011 0v13a.5.5 0 01-1 0v-13z"/>
+      </svg>
+      <span class="panel-title" style="color:var(--amber)">ISA ATMOSFER VERİLERİ</span>
+    </div>
+    <div class="atmo-grid">
+      <div class="atmo-item">
+        <div class="atmo-label">Sıcaklık</div>
+        <div class="atmo-value" id="atmoTemp">—</div>
+      </div>
+      <div class="atmo-item">
+        <div class="atmo-label">Basınç</div>
+        <div class="atmo-value" id="atmoPres">—</div>
+      </div>
+      <div class="atmo-item">
+        <div class="atmo-label">Yoğunluk</div>
+        <div class="atmo-value" id="atmoDens">—</div>
+      </div>
+      <div class="atmo-item">
+        <div class="atmo-label">Ses Hızı</div>
+        <div class="atmo-value" id="atmoSos">—</div>
+      </div>
+      <div class="atmo-item">
+        <div class="atmo-label">Yoğunluk Oranı σ</div>
+        <div class="atmo-value" id="atmoSigma">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-panel" id="resultsPanel">
+    <div class="panel-header">
+      <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor" style="color:var(--accent3)">
+        <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd"/>
+      </svg>
+      <span class="panel-title" style="color:var(--accent3)">DÖNÜŞÜM SONUÇLARI</span>
+    </div>
+
+    <div id="emptyState" class="empty-state">
+      <div class="big-icon">◈</div>
+      Hız ve irtifa değerlerini girerek hesaplama başlatın
+    </div>
+
+    <div class="results-grid" id="resultsGrid" style="display:none">
+      <!-- CAS -->
+      <div class="result-card" id="casCard">
+        <div class="result-label">Calibrated</div>
+        <div class="result-abbr cas">CAS</div>
+        <div class="result-value" id="casVal">—</div>
+        <div class="result-secondary">
+          <div class="sec-val"><span>km/h</span><span id="casKmh">—</span></div>
+          <div class="sec-val"><span>m/s</span><span id="casMs">—</span></div>
+        </div>
+      </div>
+      <!-- TAS -->
+      <div class="result-card" id="tasCard">
+        <div class="result-label">True</div>
+        <div class="result-abbr tas">TAS</div>
+        <div class="result-value" id="tasVal">—</div>
+        <div class="result-secondary">
+          <div class="sec-val"><span>km/h</span><span id="tasKmh">—</span></div>
+          <div class="sec-val"><span>m/s</span><span id="tasMs">—</span></div>
+        </div>
+      </div>
+      <!-- EAS -->
+      <div class="result-card" id="easCard">
+        <div class="result-label">Equivalent</div>
+        <div class="result-abbr eas">EAS</div>
+        <div class="result-value" id="easVal">—</div>
+        <div class="result-secondary">
+          <div class="sec-val"><span>km/h</span><span id="easKmh">—</span></div>
+          <div class="sec-val"><span>m/s</span><span id="easMs">—</span></div>
+        </div>
+      </div>
+      <!-- MACH -->
+      <div class="result-card" id="machCard">
+        <div class="result-label">Mach</div>
+        <div class="result-abbr mach">MACH</div>
+        <div class="result-value" id="machVal">—</div>
+        <div id="machZone"></div>
+        <div class="result-secondary">
+          <div class="sec-val"><span>ses hızı %</span><span id="machPct">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    AeroCalc v2.0 · ISA Standart Atmosfer Modeli (ICAO Doc 7488) · Yalnızca referans amaçlıdır
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let speedType = 'CAS';
+let speedUnit = 'KTS';
+let altUnit = 'FT';
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+const ISA = {
+  T0: 288.15,    // K - sea level temp
+  P0: 101325,    // Pa - sea level pressure
+  rho0: 1.225,   // kg/m³ - sea level density
+  L: 0.0065,     // K/m lapse rate (troposphere)
+  g: 9.80665,    // m/s²
+  R: 287.05287,  // J/(kg·K)
+  gamma: 1.4,
+  // Tropopause
+  T_trop: 216.65, // K
+  H_trop: 11000,  // m
+  // Stratosphere 1 (11-20 km) - isothermal
+  H_strat1: 20000,
+  // Stratosphere 2 (20-32 km)
+  L2: -0.001,    // K/m (warming)
+  H_strat2: 32000,
+};
+
+// ============================================================
+// ISA ATMOSPHERE
+// ============================================================
+function getISA(alt_m) {
+  let T, P, rho;
+  const { T0, P0, rho0, L, g, R, T_trop, H_trop, H_strat1, L2, H_strat2 } = ISA;
+
+  if (alt_m <= H_trop) {
+    T = T0 - L * alt_m;
+    P = P0 * Math.pow(T / T0, g / (L * R));
+  } else if (alt_m <= H_strat1) {
+    const T_base = T_trop;
+    const P_base = P0 * Math.pow(T_trop / T0, g / (L * R));
+    T = T_trop;
+    P = P_base * Math.exp(-g * (alt_m - H_trop) / (R * T_trop));
+  } else if (alt_m <= H_strat2) {
+    const T_base = T_trop;
+    const P_at11 = P0 * Math.pow(T_trop / T0, g / (L * R));
+    const P_at20 = P_at11 * Math.exp(-g * (H_strat1 - H_trop) / (R * T_trop));
+    T = T_trop + L2 * (alt_m - H_strat1);
+    // Approximate for strat2
+    T = T_trop + (-0.001) * (alt_m - H_strat1);
+    P = P_at20 * Math.pow((T_trop + (-0.001)*(alt_m - H_strat1)) / T_trop, g / (0.001 * R));
+    if (isNaN(P) || P < 0) {
+      P = P_at20 * Math.exp(-g * (alt_m - H_strat1) / (R * T_trop));
+    }
+  } else {
+    // Above 32km - rough approximation
+    T = T_trop;
+    const P_at11 = P0 * Math.pow(T_trop / T0, g / (L * R));
+    P = P_at11 * Math.exp(-g * (alt_m - H_trop) / (R * T_trop));
+  }
+
+  rho = P / (R * T);
+  const sigma = rho / rho0;
+  const sos = Math.sqrt(ISA.gamma * R * T); // m/s
+  return { T, P, rho, sigma, sos };
+}
+
+// ============================================================
+// UNIT CONVERSIONS
+// ============================================================
+function ktsToMs(kts)  { return kts * 0.514444; }
+function msToKts(ms)   { return ms / 0.514444; }
+function ktsToKmh(kts) { return kts * 1.852; }
+function kmhToKts(kmh) { return kmh / 1.852; }
+function ftToM(ft)     { return ft * 0.3048; }
+function mToFt(m)      { return m / 0.3048; }
+
+// ============================================================
+// CORE CONVERSIONS
+// All internal calc in m/s + meters
+// ============================================================
+
+// CAS (m/s) → TAS (m/s) — using isentropic compressible flow
+function CAS_to_TAS(cas_ms, atm) {
+  const { P, rho, sos } = atm;
+  const { P0, rho0, gamma } = ISA;
+  // Isentropic: qc from CAS
+  // (1 + (gamma-1)/2 * (cas/a0)²)^(gamma/(gamma-1)) - 1 = qc/P0
+  const a0 = Math.sqrt(gamma * 287.05287 * ISA.T0);
+  const mach_cas = cas_ms / a0;
+  let qc;
+  if (mach_cas < 1) {
+    qc = P0 * (Math.pow(1 + 0.2 * mach_cas * mach_cas, 3.5) - 1);
+  } else {
+    // Rayleigh pitot for supersonic (approx)
+    qc = P0 * (166.9215 * Math.pow(mach_cas, 7) / Math.pow(7 * mach_cas * mach_cas - 1, 2.5) - 1);
+  }
+  // qc = P0 (above), now find Mach from static pressure
+  const mach = Math.sqrt(5 * (Math.pow(qc / P + 1, 2/7) - 1));
+  const tas_ms = mach * atm.sos;
+  return { tas: tas_ms, mach };
+}
+
+function TAS_to_CAS(tas_ms, atm) {
+  const { P, sos } = atm;
+  const { P0, gamma } = ISA;
+  const a0 = Math.sqrt(gamma * 287.05287 * ISA.T0);
+  const mach = tas_ms / sos;
+  let qc;
+  if (mach < 1) {
+    qc = P * (Math.pow(1 + 0.2 * mach * mach, 3.5) - 1);
+  } else {
+    qc = P * (166.9215 * Math.pow(mach, 7) / Math.pow(7 * mach * mach - 1, 2.5) - 1);
+  }
+  const mach_cas = Math.sqrt(5 * (Math.pow(qc / P0 + 1, 2/7) - 1));
+  const cas_ms = mach_cas * a0;
+  return cas_ms;
+}
+
+function TAS_to_EAS(tas_ms, atm) {
+  return tas_ms * Math.sqrt(atm.sigma);
+}
+
+function EAS_to_TAS(eas_ms, atm) {
+  return eas_ms / Math.sqrt(atm.sigma);
+}
+
+function CAS_to_EAS(cas_ms, atm) {
+  const { tas } = CAS_to_TAS(cas_ms, atm);
+  return TAS_to_EAS(tas, atm);
+}
+
+function Mach_to_TAS(mach, atm) {
+  return mach * atm.sos;
+}
+
+// ============================================================
+// MAIN CONVERSION
+// Input: speed in kts or km/h, alt in ft or m
+// ============================================================
+function convertAll(speedVal, inputType, speedUnit, altVal, altUnit) {
+  // Convert to SI
+  let speed_kts = speedUnit === 'KTS' ? speedVal : kmhToKts(speedVal);
+  let alt_m = altUnit === 'FT' ? ftToM(altVal) : altVal;
+
+  const atm = getISA(alt_m);
+  let tas_ms, cas_ms, eas_ms, mach;
+
+  if (inputType === 'CAS') {
+    cas_ms = ktsToMs(speed_kts);
+    const res = CAS_to_TAS(cas_ms, atm);
+    tas_ms = res.tas;
+    mach = res.mach;
+    eas_ms = TAS_to_EAS(tas_ms, atm);
+  } else if (inputType === 'TAS') {
+    tas_ms = ktsToMs(speed_kts);
+    mach = tas_ms / atm.sos;
+    cas_ms = TAS_to_CAS(tas_ms, atm);
+    eas_ms = TAS_to_EAS(tas_ms, atm);
+  } else if (inputType === 'EAS') {
+    eas_ms = ktsToMs(speed_kts);
+    tas_ms = EAS_to_TAS(eas_ms, atm);
+    mach = tas_ms / atm.sos;
+    cas_ms = TAS_to_CAS(tas_ms, atm);
+  } else if (inputType === 'MACH') {
+    mach = speedVal; // direct mach
+    tas_ms = Mach_to_TAS(mach, atm);
+    cas_ms = TAS_to_CAS(tas_ms, atm);
+    eas_ms = TAS_to_EAS(tas_ms, atm);
+  }
+
+  const cas_kts = msToKts(cas_ms);
+  const tas_kts = msToKts(tas_ms);
+  const eas_kts = msToKts(eas_ms);
+
+  return {
+    cas: { kts: cas_kts, kmh: ktsToKmh(cas_kts), ms: cas_ms },
+    tas: { kts: tas_kts, kmh: ktsToKmh(tas_kts), ms: tas_ms },
+    eas: { kts: eas_kts, kmh: ktsToKmh(eas_kts), ms: eas_ms },
+    mach,
+    atm,
+  };
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function setSpeedType(type) {
+  speedType = type;
+  document.querySelectorAll('.speed-type-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.speed-type-btn.${type.toLowerCase()}`).classList.add('active');
+
+  const labels = { CAS: 'CAS GİRİŞ (KNOT / KM/H)', TAS: 'TAS GİRİŞ (KNOT / KM/H)', EAS: 'EAS GİRİŞ (KNOT / KM/H)', MACH: 'MACH SAYISI' };
+  document.getElementById('speedLabel').textContent = labels[type];
+
+  const speedToggle = document.getElementById('ktsBtn').parentNode;
+  if (type === 'MACH') {
+    speedToggle.style.display = 'none';
+    document.getElementById('speedInput').placeholder = '0.000';
+    document.getElementById('speedInput').step = '0.001';
+  } else {
+    speedToggle.style.display = 'flex';
+    document.getElementById('speedInput').placeholder = '0.00';
+    document.getElementById('speedInput').step = '0.1';
+  }
+}
+
+function setSpeedUnit(unit) {
+  speedUnit = unit;
+  document.getElementById('ktsBtn').classList.toggle('active', unit === 'KTS');
+  document.getElementById('kmhBtn').classList.toggle('active', unit === 'KMH');
+}
+
+function setAltUnit(unit) {
+  altUnit = unit;
+  document.getElementById('ftBtn').classList.toggle('active', unit === 'FT');
+  document.getElementById('mBtn').classList.toggle('active', unit === 'M');
+  updateAltBar();
+}
+
+function updateAltBar() {
+  const val = parseFloat(document.getElementById('altInput').value) || 0;
+  const maxFt = 80000;
+  let alt_ft = altUnit === 'FT' ? val : mToFt(val);
+  const pct = Math.max(0, Math.min(100, (alt_ft / maxFt) * 100));
+  document.getElementById('altFill').style.width = pct + '%';
+}
+
+function flashEl(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('updating');
+  void el.offsetWidth;
+  el.classList.add('updating');
+}
+
+function getMachZone(mach) {
+  if (mach < 0.8) return { label: '◈ SUBSONİK', cls: 'zone-subsonic' };
+  if (mach < 1.2) return { label: '◈ TRANSONİK', cls: 'zone-transonic' };
+  if (mach < 5.0) return { label: '◈ SUPERSONİK', cls: 'zone-supersonic' };
+  return { label: '◈ HİPERSONİK', cls: 'zone-hypersonic' };
+}
+
+function fmt(val, dec = 1) {
+  if (val == null || isNaN(val)) return '—';
+  return val.toFixed(dec);
+}
+
+// ============================================================
+// CALCULATE
+// ============================================================
+function calculate() {
+  const speedVal = parseFloat(document.getElementById('speedInput').value);
+  const altVal   = parseFloat(document.getElementById('altInput').value);
+
+  let valid = true;
+
+  if (isNaN(speedVal) || speedVal < 0) {
+    document.getElementById('speedError').classList.add('visible');
+    valid = false;
+  } else {
+    document.getElementById('speedError').classList.remove('visible');
+  }
+
+  const altM = altUnit === 'FT' ? ftToM(altVal || 0) : (altVal || 0);
+  if (isNaN(altVal)) { /* ok, default 0 */ }
+  if (altM < ftToM(-2000) || altM > ftToM(80000)) {
+    document.getElementById('altError').classList.add('visible');
+    valid = false;
+  } else {
+    document.getElementById('altError').classList.remove('visible');
+  }
+
+  if (!valid) return;
+
+  const alt = isNaN(altVal) ? 0 : altVal;
+  const speed = speedType === 'MACH' ? speedVal : speedVal;
+
+  const res = convertAll(speed, speedType, speedUnit, alt, altUnit);
+  const { cas, tas, eas, mach, atm } = res;
+
+  // Update atmosphere
+  ['atmoTemp','atmoPres','atmoDens','atmoSos','atmoSigma'].forEach(id => flashEl(id));
+  document.getElementById('atmoTemp').textContent = fmt(atm.T - 273.15, 1) + ' °C';
+  document.getElementById('atmoPres').textContent = fmt(atm.P / 100, 1) + ' hPa';
+  document.getElementById('atmoDens').textContent = fmt(atm.rho, 4) + ' kg/m³';
+  document.getElementById('atmoSos').textContent = fmt(msToKts(atm.sos), 1) + ' kt';
+  document.getElementById('atmoSigma').textContent = fmt(atm.sigma, 4);
+
+  // Update results
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultsGrid').style.display = 'grid';
+
+  ['casVal','tasVal','easVal','machVal'].forEach(id => flashEl(id));
+
+  // CAS
+  document.getElementById('casVal').innerHTML = `${fmt(cas.kts)} <span class="result-unit">KTS</span>`;
+  document.getElementById('casKmh').textContent = fmt(cas.kmh, 1);
+  document.getElementById('casMs').textContent = fmt(cas.ms, 2);
+
+  // TAS
+  document.getElementById('tasVal').innerHTML = `${fmt(tas.kts)} <span class="result-unit">KTS</span>`;
+  document.getElementById('tasKmh').textContent = fmt(tas.kmh, 1);
+  document.getElementById('tasMs').textContent = fmt(tas.ms, 2);
+
+  // EAS
+  document.getElementById('easVal').innerHTML = `${fmt(eas.kts)} <span class="result-unit">KTS</span>`;
+  document.getElementById('easKmh').textContent = fmt(eas.kmh, 1);
+  document.getElementById('easMs').textContent = fmt(eas.ms, 2);
+
+  // MACH
+  document.getElementById('machVal').innerHTML = `${fmt(mach, 4)} <span class="result-unit">M</span>`;
+  document.getElementById('machPct').textContent = fmt(mach * 100, 1) + '%';
+  const zone = getMachZone(mach);
+  document.getElementById('machZone').innerHTML = `<span class="mach-zone ${zone.cls}">${zone.label}</span>`;
+
+  // Highlight input card
+  ['casCard','tasCard','easCard','machCard'].forEach(id => {
+    document.getElementById(id).classList.remove('highlighted');
+  });
+  const cardMap = { CAS: 'casCard', TAS: 'tasCard', EAS: 'easCard', MACH: 'machCard' };
+  document.getElementById(cardMap[speedType]).classList.add('highlighted');
+
+  updateAltBar();
+}
+
+// ============================================================
+// LIVE CALCULATION ON ENTER / INPUT
+// ============================================================
+['speedInput','altInput'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') calculate();
+  });
+  document.getElementById(id).addEventListener('input', () => {
+    updateAltBar();
+  });
+});
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getUTCHours()).padStart(2,'0');
+  const m = String(now.getUTCMinutes()).padStart(2,'0');
+  const s = String(now.getUTCSeconds()).padStart(2,'0');
+  document.getElementById('currentTime').textContent = `UTC ${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Initial atmosphere at sea level
+const initAtm = getISA(0);
+document.getElementById('atmoTemp').textContent = fmt(initAtm.T - 273.15, 1) + ' °C';
+document.getElementById('atmoPres').textContent = fmt(initAtm.P / 100, 1) + ' hPa';
+document.getElementById('atmoDens').textContent = fmt(initAtm.rho, 4) + ' kg/m³';
+document.getElementById('atmoSos').textContent = fmt(msToKts(initAtm.sos), 1) + ' kt';
+document.getElementById('atmoSigma').textContent = fmt(initAtm.sigma, 4);
+</script>
+</body>
+</html>
