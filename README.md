@@ -1,10 +1,10 @@
-# AeroCalc — Airspeed Converter
+# AirspeedConverter
 
 A single-page web application for converting between aviation airspeed types using the ICAO ISA (International Standard Atmosphere) model.
 
 ## What It Does
 
-AeroCalc converts between the four primary aviation airspeed definitions at any altitude:
+AirspeedConverter converts between the four primary aviation airspeed definitions at any altitude:
 
 | Speed Type | Description |
 |---|---|
@@ -43,6 +43,10 @@ open index.html   # macOS
 # or: xdg-open index.html  (Linux)
 # or: start index.html     (Windows)
 ```
+
+## Author
+
+Developed by **Tunahan Akbey**
 
 ## References
 
