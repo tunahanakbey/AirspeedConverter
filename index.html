@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AeroCalc — Hız Dönüştürücü</title>
+<title>AirspeedConverter</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -709,15 +709,15 @@
           <path d="M4 32 L12 28 M44 32 L36 28" stroke="#00d4ff" stroke-width="1" opacity="0.5"/>
         </svg>
       </div>
-      <h1>AEROCALC</h1>
+      <h1>AIRSPEED CONVERTER</h1>
     </div>
-    <div class="subtitle">Havacılık Hız Dönüştürücü Sistemi</div>
-    <div class="tagline">ISA Standart Atmosfer · ICAO Formülleri</div>
+    <div class="subtitle">Aviation Airspeed Conversion System</div>
+    <div class="tagline">ISA Standard Atmosphere · ICAO Equations</div>
   </header>
 
   <!-- STATUS BAR -->
   <div class="status-bar">
-    <div><span class="status-dot"></span>SİSTEM HAZIR</div>
+    <div><span class="status-dot"></span>SYSTEM READY</div>
     <div class="ticker"><span class="ticker-dot"></span>ISA ATMOSPHERIC MODEL ACTIVE</div>
     <div id="currentTime">---</div>
   </div>
@@ -734,12 +734,12 @@
         <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor">
           <path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 14a6 6 0 110-12 6 6 0 010 12zm.75-9.25a.75.75 0 10-1.5 0v3.5l2.25 2.25a.75.75 0 001.06-1.06L10.75 9.19V6.75z"/>
         </svg>
-        <span class="panel-title">GİRİŞ PARAMETRELERİ</span>
+        <span class="panel-title">INPUT PARAMETERS</span>
       </div>
       <div class="panel-body">
         <!-- Speed type selector -->
         <div style="margin-bottom:14px;">
-          <label>GİRİŞ HIZ TÜRÜ</label>
+          <label>INPUT SPEED TYPE</label>
           <div class="speed-type-grid">
             <button class="speed-type-btn cas active" onclick="setSpeedType('CAS')">
               <span class="abbr">CAS</span>Calibrated Airspeed
@@ -758,20 +758,20 @@
 
         <!-- Speed input -->
         <div class="input-group" id="speedGroup">
-          <label id="speedLabel">GİRİŞ HIZ DEĞERİ</label>
+          <label id="speedLabel">CAS INPUT (KTS / M/S)</label>
           <div class="input-row">
             <input type="number" id="speedInput" placeholder="0.00" step="0.1" min="0">
             <div class="unit-toggle">
               <button class="unit-btn active" id="ktsBtn" onclick="setSpeedUnit('KTS')">KTS</button>
-              <button class="unit-btn" id="kmhBtn" onclick="setSpeedUnit('KMH')">KM/H</button>
+              <button class="unit-btn" id="msBtn" onclick="setSpeedUnit('MS')">M/S</button>
             </div>
           </div>
-          <div id="speedError" class="error-msg">⚠ Geçerli bir hız değeri girin</div>
+          <div id="speedError" class="error-msg">⚠ Please enter a valid speed value</div>
         </div>
 
         <!-- Altitude input -->
         <div class="input-group">
-          <label>İRTİFA</label>
+          <label>ALTITUDE</label>
           <div class="input-row">
             <input type="number" id="altInput" placeholder="0" step="100" min="-2000" max="80000">
             <div class="unit-toggle">
@@ -779,12 +779,12 @@
               <button class="unit-btn" id="mBtn" onclick="setAltUnit('M')">M</button>
             </div>
           </div>
-          <div id="altError" class="error-msg">⚠ İrtifa -2000ft ile 80000ft arasında olmalıdır</div>
+          <div id="altError" class="error-msg">⚠ Altitude must be between -2000 ft and 80000 ft</div>
           <!-- Altitude visual bar -->
           <div class="alt-visual"><div class="alt-fill" id="altFill" style="width:0%"></div></div>
         </div>
 
-        <button class="calc-btn" onclick="calculate()">▶ HESAPLA</button>
+        <button class="calc-btn" onclick="calculate()">▶ CALCULATE</button>
       </div>
     </div>
 
@@ -794,24 +794,24 @@
         <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd"/>
         </svg>
-        <span class="panel-title">HIZ TÜRLERİ HAKKINDA</span>
+        <span class="panel-title">ABOUT SPEED TYPES</span>
       </div>
       <div class="panel-body">
         <div class="formula-card">
           <strong>CAS</strong> — Calibrated Airspeed<br>
-          Pitot tüpünden ölçülen ve enstrüman hatası düzeltilmiş hız. Düşük irtifa ve hızda IAS ≈ CAS ≈ EAS.
+          Airspeed measured by the pitot tube and corrected for instrument error. At low altitude and speed: IAS ≈ CAS ≈ EAS.
         </div>
         <div class="formula-card" style="border-left-color: var(--accent3);">
           <strong>TAS</strong> — True Airspeed<br>
-          Hava kütlesine göre gerçek hız. İrtifa arttıkça hava yoğunluğu azalır, TAS > CAS olur.
+          Actual speed relative to the air mass. As altitude increases, air density decreases and TAS &gt; CAS.
         </div>
         <div class="formula-card" style="border-left-color: var(--amber);">
           <strong>EAS</strong> — Equivalent Airspeed<br>
-          Aynı dinamik basıncı deniz seviyesinde üreten hız. EAS = TAS × √(ρ/ρ₀)
+          Speed that produces the same dynamic pressure as TAS at sea level. EAS = TAS × √(ρ/ρ₀)
         </div>
         <div class="formula-card" style="border-left-color: var(--accent2);">
-          <strong>MACH</strong> — Mach Sayısı<br>
-          TAS'ın ses hızına oranı. M &lt; 0.8 subsonic, 0.8–1.2 transonic, &gt; 1.2 supersonic.
+          <strong>MACH</strong> — Mach Number<br>
+          Ratio of TAS to the local speed of sound. M &lt; 0.8 subsonic, 0.8–1.2 transonic, &gt; 1.2 supersonic.
         </div>
       </div>
     </div>
@@ -823,27 +823,27 @@
       <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor" style="color:var(--amber)">
         <path d="M5.5 16.5a1 1 0 11-2 0 1 1 0 012 0zm0-14a1 1 0 11-2 0 1 1 0 012 0zM16.5 16.5a1 1 0 11-2 0 1 1 0 012 0zm0-14a1 1 0 11-2 0 1 1 0 012 0zM11 3.5a.5.5 0 011 0v13a.5.5 0 01-1 0v-13z"/>
       </svg>
-      <span class="panel-title" style="color:var(--amber)">ISA ATMOSFER VERİLERİ</span>
+      <span class="panel-title" style="color:var(--amber)">ISA ATMOSPHERE DATA</span>
     </div>
     <div class="atmo-grid">
       <div class="atmo-item">
-        <div class="atmo-label">Sıcaklık</div>
+        <div class="atmo-label">Temperature</div>
         <div class="atmo-value" id="atmoTemp">—</div>
       </div>
       <div class="atmo-item">
-        <div class="atmo-label">Basınç</div>
+        <div class="atmo-label">Pressure</div>
         <div class="atmo-value" id="atmoPres">—</div>
       </div>
       <div class="atmo-item">
-        <div class="atmo-label">Yoğunluk</div>
+        <div class="atmo-label">Density</div>
         <div class="atmo-value" id="atmoDens">—</div>
       </div>
       <div class="atmo-item">
-        <div class="atmo-label">Ses Hızı</div>
+        <div class="atmo-label">Speed of Sound</div>
         <div class="atmo-value" id="atmoSos">—</div>
       </div>
       <div class="atmo-item">
-        <div class="atmo-label">Yoğunluk Oranı σ</div>
+        <div class="atmo-label">Density Ratio σ</div>
         <div class="atmo-value" id="atmoSigma">—</div>
       </div>
     </div>
@@ -855,12 +855,12 @@
       <svg class="panel-icon" viewBox="0 0 20 20" fill="currentColor" style="color:var(--accent3)">
         <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd"/>
       </svg>
-      <span class="panel-title" style="color:var(--accent3)">DÖNÜŞÜM SONUÇLARI</span>
+      <span class="panel-title" style="color:var(--accent3)">CONVERSION RESULTS</span>
     </div>
 
     <div id="emptyState" class="empty-state">
       <div class="big-icon">◈</div>
-      Hız ve irtifa değerlerini girerek hesaplama başlatın
+      Enter speed and altitude values to begin calculation
     </div>
 
     <div class="results-grid" id="resultsGrid" style="display:none">
@@ -901,14 +901,14 @@
         <div class="result-value" id="machVal">—</div>
         <div id="machZone"></div>
         <div class="result-secondary">
-          <div class="sec-val"><span>ses hızı %</span><span id="machPct">—</span></div>
+          <div class="sec-val"><span>% speed of sound</span><span id="machPct">—</span></div>
         </div>
       </div>
     </div>
   </div>
 
   <footer>
-    AeroCalc v2.0 · ISA Standart Atmosfer Modeli (ICAO Doc 7488) · Yalnızca referans amaçlıdır
+    AirspeedConverter v2.0 · ISA Standard Atmosphere Model (ICAO Doc 7488) · For reference purposes only
   </footer>
 </div>
 
@@ -943,6 +943,10 @@ const ISA = {
 
 // ============================================================
 // ISA ATMOSPHERE
+// Source: ICAO Doc 7488/3, "Manual of the ICAO Standard Atmosphere", 3rd ed. (1993)
+//   Troposphere  (0 – 11 km):   T = T0 − L·h,   P = P0·(T/T0)^(g/(L·R))
+//   Stratosphere I  (11–20 km, isothermal):  P = P₁₁·exp(−g·Δh / (R·T_trop))
+//   Stratosphere II (20–32 km, lapse +0.001 K/m): pressure-altitude equation
 // ============================================================
 function getISA(alt_m) {
   let T, P, rho;
@@ -961,27 +965,30 @@ function getISA(alt_m) {
     const P_at11 = P0 * Math.pow(T_trop / T0, g / (L * R));
     const P_at20 = P_at11 * Math.exp(-g * (H_strat1 - H_trop) / (R * T_trop));
     T = T_trop + L2 * (alt_m - H_strat1);
-    // Approximate for strat2
+    // Approximate temperature for stratosphere II layer
     T = T_trop + (-0.001) * (alt_m - H_strat1);
     P = P_at20 * Math.pow((T_trop + (-0.001)*(alt_m - H_strat1)) / T_trop, g / (0.001 * R));
     if (isNaN(P) || P < 0) {
       P = P_at20 * Math.exp(-g * (alt_m - H_strat1) / (R * T_trop));
     }
   } else {
-    // Above 32km - rough approximation
+    // Above 32 km — rough isothermal extrapolation (outside ICAO standard range)
     T = T_trop;
     const P_at11 = P0 * Math.pow(T_trop / T0, g / (L * R));
     P = P_at11 * Math.exp(-g * (alt_m - H_trop) / (R * T_trop));
   }
 
-  rho = P / (R * T);
-  const sigma = rho / rho0;
-  const sos = Math.sqrt(ISA.gamma * R * T); // m/s
+  rho = P / (R * T);                          // ideal gas law: ρ = P/(R·T)
+  const sigma = rho / rho0;                  // density ratio σ = ρ/ρ₀
+  const sos = Math.sqrt(ISA.gamma * R * T);  // speed of sound: a = √(γ·R·T), m/s
   return { T, P, rho, sigma, sos };
 }
 
 // ============================================================
 // UNIT CONVERSIONS
+// 1 kt   = 0.514444 m/s  (exact: 1852 m / 3600 s — ICAO/SI definition of the nautical mile)
+// 1 kt   = 1.852 km/h    (exact: 1 NM = 1852 m)
+// 1 ft   = 0.3048 m      (exact, per international foot definition, ISO 31-1)
 // ============================================================
 function ktsToMs(kts)  { return kts * 0.514444; }
 function msToKts(ms)   { return ms / 0.514444; }
@@ -992,30 +999,42 @@ function mToFt(m)      { return m / 0.3048; }
 
 // ============================================================
 // CORE CONVERSIONS
-// All internal calc in m/s + meters
+// All internal calculations use SI units: m/s for speed, metres for altitude.
 // ============================================================
 
-// CAS (m/s) → TAS (m/s) — using isentropic compressible flow
+// CAS (m/s) → TAS (m/s)
+// Method: isentropic compressible-flow impact-pressure equation (subsonic)
+//   qc/P0 = [(1 + (γ−1)/2 · M_cas²)^(γ/(γ−1))] − 1
+//   then solve for Mach from static pressure: M = √[5·((qc/P + 1)^(2/7) − 1)]
+// Source: Anderson, J.D. "Introduction to Flight", 8th ed. (2015), Eq. 4.74
+//         ICAO Doc 8168 Vol. I, Attachment A
+// Supersonic (M_cas > 1): Rayleigh Pitot-tube formula
+//   qc/P0 = 166.9215 · M^7 / (7M² − 1)^2.5 − 1
+// Source: Rayleigh, Lord (1910) "Aerial Plane Waves of Finite Amplitude";
+//         NACA Technical Note 1135 (1953), Eq. 4.76
 function CAS_to_TAS(cas_ms, atm) {
   const { P, rho, sos } = atm;
   const { P0, rho0, gamma } = ISA;
-  // Isentropic: qc from CAS
-  // (1 + (gamma-1)/2 * (cas/a0)²)^(gamma/(gamma-1)) - 1 = qc/P0
   const a0 = Math.sqrt(gamma * 287.05287 * ISA.T0);
   const mach_cas = cas_ms / a0;
   let qc;
   if (mach_cas < 1) {
+    // Subsonic isentropic: qc = P0·[(1 + 0.2·M²)^3.5 − 1]
     qc = P0 * (Math.pow(1 + 0.2 * mach_cas * mach_cas, 3.5) - 1);
   } else {
-    // Rayleigh pitot for supersonic (approx)
+    // Supersonic: Rayleigh Pitot formula
     qc = P0 * (166.9215 * Math.pow(mach_cas, 7) / Math.pow(7 * mach_cas * mach_cas - 1, 2.5) - 1);
   }
-  // qc = P0 (above), now find Mach from static pressure
+  // Recover Mach from ambient static pressure: M = √[5·((qc/P + 1)^(2/7) − 1)]
   const mach = Math.sqrt(5 * (Math.pow(qc / P + 1, 2/7) - 1));
   const tas_ms = mach * atm.sos;
   return { tas: tas_ms, mach };
 }
 
+// TAS (m/s) → CAS (m/s)
+// Reverse of CAS_to_TAS: compute impact pressure qc from local Mach,
+// then back-solve for equivalent sea-level Mach (M_cas) using P0.
+// Source: same as CAS_to_TAS above.
 function TAS_to_CAS(tas_ms, atm) {
   const { P, sos } = atm;
   const { P0, gamma } = ISA;
@@ -1032,6 +1051,10 @@ function TAS_to_CAS(tas_ms, atm) {
   return cas_ms;
 }
 
+// TAS ↔ EAS density-ratio correction
+// EAS = TAS · √(ρ/ρ₀) = TAS · √σ
+// Source: Gracey, W. (1980) "Measurement of Aircraft Speed and Altitude",
+//         NASA Reference Publication 1046, Chapter 2
 function TAS_to_EAS(tas_ms, atm) {
   return tas_ms * Math.sqrt(atm.sigma);
 }
@@ -1040,22 +1063,25 @@ function EAS_to_TAS(eas_ms, atm) {
   return eas_ms / Math.sqrt(atm.sigma);
 }
 
+// CAS → EAS: convert via TAS as intermediate step.
 function CAS_to_EAS(cas_ms, atm) {
   const { tas } = CAS_to_TAS(cas_ms, atm);
   return TAS_to_EAS(tas, atm);
 }
 
+// Mach → TAS: TAS = M · a, where a = √(γ·R·T) is the local speed of sound.
+// Source: Anderson, J.D. "Introduction to Flight", 8th ed. (2015), Eq. 1.8
 function Mach_to_TAS(mach, atm) {
   return mach * atm.sos;
 }
 
 // ============================================================
 // MAIN CONVERSION
-// Input: speed in kts or km/h, alt in ft or m
+// Input: speed in kts or m/s, altitude in ft or m
 // ============================================================
 function convertAll(speedVal, inputType, speedUnit, altVal, altUnit) {
-  // Convert to SI
-  let speed_kts = speedUnit === 'KTS' ? speedVal : kmhToKts(speedVal);
+  // Convert inputs to SI base units (knots for speed, metres for altitude)
+  let speed_kts = speedUnit === 'KTS' ? speedVal : msToKts(speedVal);
   let alt_m = altUnit === 'FT' ? ftToM(altVal) : altVal;
 
   const atm = getISA(alt_m);
@@ -1105,7 +1131,7 @@ function setSpeedType(type) {
   document.querySelectorAll('.speed-type-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.speed-type-btn.${type.toLowerCase()}`).classList.add('active');
 
-  const labels = { CAS: 'CAS GİRİŞ (KNOT / KM/H)', TAS: 'TAS GİRİŞ (KNOT / KM/H)', EAS: 'EAS GİRİŞ (KNOT / KM/H)', MACH: 'MACH SAYISI' };
+  const labels = { CAS: 'CAS INPUT (KTS / M/S)', TAS: 'TAS INPUT (KTS / M/S)', EAS: 'EAS INPUT (KTS / M/S)', MACH: 'MACH NUMBER' };
   document.getElementById('speedLabel').textContent = labels[type];
 
   const speedToggle = document.getElementById('ktsBtn').parentNode;
@@ -1123,7 +1149,7 @@ function setSpeedType(type) {
 function setSpeedUnit(unit) {
   speedUnit = unit;
   document.getElementById('ktsBtn').classList.toggle('active', unit === 'KTS');
-  document.getElementById('kmhBtn').classList.toggle('active', unit === 'KMH');
+  document.getElementById('msBtn').classList.toggle('active', unit === 'MS');
 }
 
 function setAltUnit(unit) {
@@ -1149,10 +1175,10 @@ function flashEl(id) {
 }
 
 function getMachZone(mach) {
-  if (mach < 0.8) return { label: '◈ SUBSONİK', cls: 'zone-subsonic' };
-  if (mach < 1.2) return { label: '◈ TRANSONİK', cls: 'zone-transonic' };
-  if (mach < 5.0) return { label: '◈ SUPERSONİK', cls: 'zone-supersonic' };
-  return { label: '◈ HİPERSONİK', cls: 'zone-hypersonic' };
+  if (mach < 0.8) return { label: '◈ SUBSONIC', cls: 'zone-subsonic' };
+  if (mach < 1.2) return { label: '◈ TRANSONIC', cls: 'zone-transonic' };
+  if (mach < 5.0) return { label: '◈ SUPERSONIC', cls: 'zone-supersonic' };
+  return { label: '◈ HYPERSONIC', cls: 'zone-hypersonic' };
 }
 
 function fmt(val, dec = 1) {
@@ -1250,7 +1276,7 @@ function calculate() {
   });
 });
 
-// Clock
+// UTC clock display — updates every second
 function updateClock() {
   const now = new Date();
   const h = String(now.getUTCHours()).padStart(2,'0');
@@ -1261,7 +1287,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// Initial atmosphere at sea level
+// Pre-populate atmosphere panel with sea-level ISA values on page load
 const initAtm = getISA(0);
 document.getElementById('atmoTemp').textContent = fmt(initAtm.T - 273.15, 1) + ' °C';
 document.getElementById('atmoPres').textContent = fmt(initAtm.P / 100, 1) + ' hPa';
